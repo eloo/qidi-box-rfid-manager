@@ -39,8 +39,8 @@ export default function HomeScreen() {
   const [nfcEnabled, setNfcEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tagData, setTagData] = useState<TagData | null>(null);
-  const [selectedMaterial, setSelectedMaterial] = useState<number>(1);
-  const [selectedColor, setSelectedColor] = useState<number>(1);
+  const [selectedMaterial, setSelectedMaterial] = useState<number | null>(null);
+  const [selectedColor, setSelectedColor] = useState<number | null>(null);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarAction, setSnackbarAction] = useState<
@@ -115,6 +115,11 @@ export default function HomeScreen() {
       return;
     }
 
+    if (!selectedMaterial || !selectedColor) {
+      showSnackbar("Please select both material and color");
+      return;
+    }
+
     Alert.alert(
       "Confirm Write",
       `Are you sure you want to write the following data to the tag?\n\nMaterial: ${
@@ -177,10 +182,12 @@ export default function HomeScreen() {
     );
   };
 
-  const selectedMaterialData = MATERIALS.find(
-    (m) => m.code === selectedMaterial
-  );
-  const selectedColorData = COLORS.find((c) => c.code === selectedColor);
+  const selectedMaterialData = selectedMaterial
+    ? MATERIALS.find((m) => m.code === selectedMaterial)
+    : null;
+  const selectedColorData = selectedColor
+    ? COLORS.find((c) => c.code === selectedColor)
+    : null;
 
   return (
     <SafeAreaView
