@@ -17,8 +17,8 @@ pnpm lint             # Run ESLint
 
 ### Platform-Specific Development
 ```bash
-pnpm android          # Run on Android device/emulator
-pnpm android:build    # Build Android app
+pnpm android          # Run on Android device/emulator (local)
+pnpm android:build    # Build Android development build using EAS Build
 pnpm android:release  # Build Android release APK using EAS Build
 pnpm web              # Run web version
 ```
@@ -141,22 +141,22 @@ The app requires custom native code (react-native-nfc-manager plugin), so it can
 
 ### Build Process
 
-1. **Generate native directories** (if not already present):
+1. **Local Development** (for quick testing):
    ```bash
-   pnpm prebuild
+   pnpm android          # Run on connected device using local build
    ```
 
-2. **Development Build**:
+2. **Development Build** (EAS cloud build):
    ```bash
-   pnpm android          # Build and run development build on connected device
+   pnpm android:build    # Build development APK using EAS Build
    ```
 
-3. **Production Build**:
+3. **Production Build** (EAS cloud build):
    ```bash
-   pnpm android:release  # Build Android release APK using EAS Build (cloud build)
+   pnpm android:release  # Build production APK using EAS Build
    ```
 
-   The EAS Build command will build your app in the cloud and provide a download link for the APK.
+   Both EAS Build commands will build your app in the cloud and provide a download link for the APK.
 
 All builds require a physical Android device with NFC support to test functionality.
 
