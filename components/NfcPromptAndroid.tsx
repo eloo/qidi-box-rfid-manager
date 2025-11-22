@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Modal,
+  Platform,
   StyleSheet,
   View,
 } from "react-native";
@@ -64,6 +65,11 @@ function NfcPromptAndroid() {
       },
     ],
   };
+
+  // Only render on Android
+  if (Platform.OS !== 'android') {
+    return null;
+  }
 
   return (
     <Modal transparent={true} visible={visible}>

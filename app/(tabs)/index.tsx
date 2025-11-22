@@ -3,7 +3,7 @@ import TagDataCard from "@/components/TagDataCard";
 import nfcService from "@/services/nfcService";
 import type { TagData } from "@/types";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Appbar,
@@ -118,13 +118,20 @@ export default function HomeScreen() {
         <Appbar.Content title="QIDI RFID Tag Manager" />
       </Appbar.Header>
 
-      {!nfcSupported && (
+      {Platform.OS !== "android" && (
+        <Banner visible icon="cellphone-off" actions={[]}>
+          This app currently only supports Android devices with NFC capability.
+          iOS support is not available.
+        </Banner>
+      )}
+
+      {Platform.OS === "android" && !nfcSupported && (
         <Banner visible icon="alert-circle" actions={[]}>
           NFC is not supported on this device
         </Banner>
       )}
 
-      {nfcSupported && !nfcEnabled && (
+      {Platform.OS === "android" && nfcSupported && !nfcEnabled && (
         <Banner
           visible
           icon="nfc-variant-off"
@@ -161,7 +168,7 @@ export default function HomeScreen() {
           <Button
             mode="contained"
             onPress={handleScan}
-            disabled={loading || !nfcEnabled}
+            disabled={loading || !nfcEnabled || Platform.OS !== "android"}
             icon="nfc-variant"
             style={styles.scanButton}
             contentStyle={styles.buttonContent}
@@ -176,7 +183,8 @@ export default function HomeScreen() {
         {tagData && (
           <View style={styles.section}>
             <Text variant="bodyMedium" style={styles.instructions}>
-              To write new data to this tag, go to the "Write" tab below.
+              To write new data to this tag, go to the &ldquo;Write&rdquo; tab
+              below.
             </Text>
           </View>
         )}

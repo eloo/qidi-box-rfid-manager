@@ -4,7 +4,7 @@ import { MATERIALS } from "@/constants/materials";
 import nfcService from "@/services/nfcService";
 import type { TagData } from "@/types";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
   Appbar,
   Banner,
@@ -26,7 +26,9 @@ interface AndroidPromptData {
 export default function WriteScreen() {
   const theme = useTheme();
 
-  const [sharedTagDataState, setSharedTagData] = useOutlet<{ data: TagData | null }>("tagData");
+  const [sharedTagDataState, setSharedTagData] = useOutlet<{
+    data: TagData | null;
+  }>("tagData");
   const tagData = sharedTagDataState?.data || null;
 
   const [nfcSupported, setNfcSupported] = useState(true);
@@ -122,11 +124,9 @@ export default function WriteScreen() {
             MATERIALS.find((m) => m.code === selectedMaterial)?.name ||
             "Unknown",
           colorName:
-            COLORS.find((c) => c.code === selectedColor)?.name ||
-            "Unknown",
+            COLORS.find((c) => c.code === selectedColor)?.name || "Unknown",
           colorRgb:
-            COLORS.find((c) => c.code === selectedColor)?.rgb ||
-            "#000000",
+            COLORS.find((c) => c.code === selectedColor)?.rgb || "#000000",
         };
         setSharedTagData({ data: updatedData });
         showSnackbar("Data written to tag successfully!");
@@ -156,6 +156,13 @@ export default function WriteScreen() {
       <Appbar.Header>
         <Appbar.Content title="QIDI RFID Tag Manager" />
       </Appbar.Header>
+
+      {Platform.OS !== "android" && (
+        <Banner visible icon="cellphone-off" actions={[]}>
+          This app currently only supports Android devices with NFC capability.
+          iOS support is not available.
+        </Banner>
+      )}
 
       {!nfcSupported && (
         <Banner visible icon="alert-circle" actions={[]}>
@@ -193,8 +200,8 @@ export default function WriteScreen() {
                   No Tag Scanned
                 </Text>
                 <Text variant="bodyMedium" style={styles.emptyMessage}>
-                  Please scan a tag in the "Read" tab first, then come back here
-                  to write new data.
+                  Please scan a tag in the &ldquo;Read&rdquo; tab first, then
+                  come back here to write new data.
                 </Text>
               </Card.Content>
             </Card>
@@ -345,7 +352,7 @@ export default function WriteScreen() {
               <Button
                 mode="contained"
                 onPress={handleWrite}
-                disabled={loading || !nfcEnabled}
+                disabled={loading || !nfcEnabled || Platform.OS !== "android"}
                 icon="pencil"
                 style={styles.writeButton}
                 contentStyle={styles.buttonContent}

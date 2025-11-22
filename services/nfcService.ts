@@ -1,6 +1,7 @@
 import { getColorName, getColorRgb } from "@/constants/colors";
 import { getMaterialName } from "@/constants/materials";
 import type { NFCReadResult, NFCWriteResult, TagData } from "@/types";
+import { Platform } from "react-native";
 import NfcManager, { NfcTech } from "react-native-nfc-manager";
 
 // QIDI Box RFID Configuration
@@ -43,9 +44,22 @@ class NFCService {
 
   async readTag(): Promise<NFCReadResult> {
     try {
+      // Check platform support
+      if (Platform.OS !== 'android') {
+        return {
+          success: false,
+          error: "NFC reading is currently only supported on Android devices",
+        };
+      }
+
       await NfcManager.requestTechnology(NfcTech.MifareClassic);
 
       await this.authenticate();
+
+      // Use Android-specific handler with platform guard
+      if (!NfcManager.mifareClassicHandlerAndroid) {
+        throw new Error("Mifare Classic handler not available on this platform");
+      }
 
       const block =
         await NfcManager.mifareClassicHandlerAndroid.mifareClassicSectorToBlock(
@@ -90,9 +104,36 @@ class NFCService {
     manufacturerCode: number = 1
   ): Promise<NFCWriteResult> {
     try {
+      // Check platform support
+      if (Platform.OS !== 'android') {
+        return {
+          success: false,
+          error: "NFC writing is currently only supported on Android devices",
+        };
+      }
+
+      // Validate input ranges
+      if (materialCode < 1 || materialCode > 50) {
+        return {
+          success: false,
+          error: "Material code must be between 1 and 50",
+        };
+      }
+      if (colorCode < 1 || colorCode > 24) {
+        return {
+          success: false,
+          error: "Color code must be between 1 and 24",
+        };
+      }
+
       await NfcManager.requestTechnology(NfcTech.MifareClassic);
 
       await this.authenticate();
+
+      // Check handler availability
+      if (!NfcManager.mifareClassicHandlerAndroid) {
+        throw new Error("Mifare Classic handler not available on this platform");
+      }
 
       // Create new data array (16 bytes)
       const newData = new Array<number>(16).fill(0);
@@ -147,6 +188,15 @@ class NFCService {
   }
 
   private async authenticate() {
+    // Platform check before authentication
+    if (Platform.OS !== 'android') {
+      throw new Error('Authentication is only supported on Android devices');
+    }
+
+    if (!NfcManager.mifareClassicHandlerAndroid) {
+      throw new Error('Mifare Classic handler not available');
+    }
+
     let lastErr = null;
     for (const key of AUTH_KEYS) {
       try {
