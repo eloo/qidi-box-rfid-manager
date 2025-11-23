@@ -13,7 +13,7 @@
       "infoPlist": {
         "NFCReaderUsageDescription": "This app requires NFC to read and write RFID tags for QIDI 3D printer filament management."
       },
-      "bundleIdentifier": "com.nocloud.qidirfid"
+      "bundleIdentifier": "app.nocloud.qidirfid"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.nocloud.qidirfid",
+      "package": "app.nocloud.qidirfid",
       "permissions": ["android.permission.NFC"]
     },
     "web": {
