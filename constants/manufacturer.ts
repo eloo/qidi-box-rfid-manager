@@ -9,7 +9,7 @@ import type { Manufacturer } from '@/types';
  * Supports values 0-255 (1 byte)
  */
 export const MANUFACTURERS: Manufacturer[] = [
-  { code: 0, name: "Unknown/Reserved" },
+  // { code: 0, name: "Unknown/Reserved" },
   { code: 1, name: "QIDI" },
   { code: 2, name: "Generic" },
 ];
