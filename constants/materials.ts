@@ -9,7 +9,7 @@ export const MATERIALS: Material[] = [
   { code: 6, name: "PLA-Wood" },
   { code: 7, name: "PLA Basic" },
   { code: 8, name: "PLA Matte Basic" },
-  // { code: 9, name: 'Unknown 9' },
+  { code: 9, name: 'PLA+' }, // Custom
   // { code: 10, name: 'Unknown 10' },
   { code: 11, name: "ABS" },
   { code: 12, name: "ABS-GF" },
@@ -41,7 +41,7 @@ export const MATERIALS: Material[] = [
   { code: 38, name: "PET-GF" },
   { code: 39, name: "PETG Basic" },
   { code: 40, name: "PETG Tough" },
-  { code: 41, name: "PETG Rapido" },
+  { code: 41, name: "PETG" },
   { code: 42, name: "PETG-CF" },
   { code: 43, name: "PETG-GF" },
   { code: 44, name: "PPS-CF" },
