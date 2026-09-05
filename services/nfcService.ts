@@ -1,15 +1,12 @@
 import { getColorName, getColorRgb } from "@/constants/colors";
 import { getMaterialName } from "@/constants/materials";
+import { formatKey, getAuthenticationAttempts } from "@/services/nfcAuth";
 import type { NFCReadResult, NFCWriteResult, TagData } from "@/types";
 import { Platform } from "react-native";
 import NfcManager, { NfcTech } from "react-native-nfc-manager";
 
 // QIDI Box RFID Configuration
 const SECTOR = 1;
-const AUTH_KEYS = [
-  [0xd3, 0xf7, 0xd3, 0xf7, 0xd3, 0xf7],
-  [0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
-];
 
 class NFCService {
   private initialized = false;
@@ -45,7 +42,7 @@ class NFCService {
   async readTag(): Promise<NFCReadResult> {
     try {
       // Check platform support
-      if (Platform.OS !== 'android') {
+      if (Platform.OS !== "android") {
         return {
           success: false,
           error: "NFC reading is currently only supported on Android devices",
@@ -58,16 +55,18 @@ class NFCService {
 
       // Use Android-specific handler with platform guard
       if (!NfcManager.mifareClassicHandlerAndroid) {
-        throw new Error("Mifare Classic handler not available on this platform");
+        throw new Error(
+          "Mifare Classic handler not available on this platform",
+        );
       }
 
       const block =
         await NfcManager.mifareClassicHandlerAndroid.mifareClassicSectorToBlock(
-          SECTOR
+          SECTOR,
         );
       const data =
         await NfcManager.mifareClassicHandlerAndroid.mifareClassicReadBlock(
-          block
+          block,
         );
 
       const materialCode = data[0];
@@ -101,11 +100,11 @@ class NFCService {
   async writeTag(
     materialCode: number,
     colorCode: number,
-    manufacturerCode: number = 1
+    manufacturerCode: number = 1,
   ): Promise<NFCWriteResult> {
     try {
       // Check platform support
-      if (Platform.OS !== 'android') {
+      if (Platform.OS !== "android") {
         return {
           success: false,
           error: "NFC writing is currently only supported on Android devices",
@@ -138,7 +137,9 @@ class NFCService {
 
       // Check handler availability
       if (!NfcManager.mifareClassicHandlerAndroid) {
-        throw new Error("Mifare Classic handler not available on this platform");
+        throw new Error(
+          "Mifare Classic handler not available on this platform",
+        );
       }
 
       // Create new data array (16 bytes)
@@ -150,18 +151,18 @@ class NFCService {
       // Write the block
       const block =
         await NfcManager.mifareClassicHandlerAndroid.mifareClassicSectorToBlock(
-          SECTOR
+          SECTOR,
         );
 
       await NfcManager.mifareClassicHandlerAndroid.mifareClassicWriteBlock(
         block,
-        newData
+        newData,
       );
 
       // Verify write by reading back
       const verifyData =
         await NfcManager.mifareClassicHandlerAndroid.mifareClassicReadBlock(
-          block
+          block,
         );
       if (
         verifyData[0] !== materialCode ||
@@ -195,30 +196,49 @@ class NFCService {
 
   private async authenticate() {
     // Platform check before authentication
-    if (Platform.OS !== 'android') {
-      throw new Error('Authentication is only supported on Android devices');
+    if (Platform.OS !== "android") {
+      throw new Error("Authentication is only supported on Android devices");
     }
 
     if (!NfcManager.mifareClassicHandlerAndroid) {
-      throw new Error('Mifare Classic handler not available');
+      throw new Error("Mifare Classic handler not available");
     }
 
-    let lastErr = null;
-    for (const key of AUTH_KEYS) {
+    const attempts = getAuthenticationAttempts(SECTOR);
+    const tried: string[] = [];
+    let lastErr: unknown = null;
+
+    for (const [authMethod, key] of attempts) {
+      const formattedKey = formatKey(key);
+      tried.push(`${authMethod}:${formattedKey}`);
+
       try {
-        await NfcManager.mifareClassicHandlerAndroid.mifareClassicAuthenticateA(
-          SECTOR,
-          key
-        );
+        if (authMethod === "A") {
+          await NfcManager.mifareClassicHandlerAndroid.mifareClassicAuthenticateA(
+            SECTOR,
+            key,
+          );
+        } else {
+          await NfcManager.mifareClassicHandlerAndroid.mifareClassicAuthenticateB(
+            SECTOR,
+            key,
+          );
+        }
+
         return;
-      } catch (e) {
-        lastErr = e;
+      } catch (error) {
+        lastErr = error;
       }
     }
 
     if (lastErr) {
-      throw new Error(`Authentication failed`);
+      console.error("NFC auth failed. Tried:", tried, lastErr);
+      throw new Error(
+        `Authentication failed for sector ${SECTOR}. Tried: ${tried.join(", ")}`,
+      );
     }
+
+    throw new Error(`Authentication failed for sector ${SECTOR}`);
   }
 }
 
